@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏物品图鉴系统 - 图片上传功能</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: #e6e6e6;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        
+        .sidebar-header {
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #4cc9f0;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        
+        .sidebar-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #4cc9f0;
+        }
+        
+        .sidebar-btn {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(76, 201, 240, 0.1);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            color: #e6e6e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .sidebar-btn:hover {
+            background: rgba(76, 201, 240, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .sidebar-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        /* 主内容区样式 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #1a1a2e;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background-color: #16213e;
+            border-bottom: 1px solid #0f3460;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: #0f3460;
+            border: 1px solid #1a1a2e;
+            border-radius: 8px;
+            padding: 8px 15px;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-container input {
+            flex: 1;
+            border: none;
+            padding: 8px 12px;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            color: #e6e6e6;
+        }
+        
+        .search-container input::placeholder {
+            color: #8a8a8a;
+        }
+        
+        .search-container button {
+            background: none;
+            border: none;
+            color: #4cc9f0;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        
+        .search-container button:hover {
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background-color: #0f3460;
+            border: 1px solid #1a1a2e;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            color: #e6e6e6;
+        }
+        
+        .filter-btn.active, .filter-btn:hover {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+            border-color: #4cc9f0;
+        }
+        
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #16213e;
+            position: sticky;
+            top: 0;
+        }
+        
+        th {
+            text-align: left;
+            padding: 16px 20px;
+            font-weight: 600;
+            color: #4cc9f0;
+            border-bottom: 2px solid #0f3460;
+            font-size: 0.95rem;
+        }
+        
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #0f3460;
+            vertical-align: middle;
+        }
+        
+        .image-cell {
+            width: 120px;
+        }
+        
+        .image-cell img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+            background-color: #16213e;
+        }
+        
+        .english-cell {
+            font-weight: 600;
+            color: #e6e6e6;
+            font-size: 1.1rem;
+            min-width: 200px;
+        }
+        
+        .chinese-cell {
+            color: #b8b8b8;
+            min-width: 200px;
+        }
+        
+        .tags-cell {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-width: 150px;
+        }
+        
+        .tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            border-radius: 12px;
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .favorite-btn, .delete-btn, .edit-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 5px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .favorite-btn {
+            color: #8a8a8a;
+        }
+        
+        .favorite-btn:hover {
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+        
+        .favorite-btn.active {
+            color: #f72585;
+        }
+        
+        .delete-btn {
+            color: #8a8a8a;
+        }
+        
+        .delete-btn:hover {
+            color: #f72585;
+            background-color: rgba(247, 37, 133, 0.1);
+        }
+        
+        .edit-btn {
+            color: #8a8a8a;
+        }
+        
+        .edit-btn:hover {
+            color: #4cc9f0;
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: rgba(76, 201, 240, 0.05);
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #16213e;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #0f3460;
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: #e6e6e6;
+            border-bottom: 1px solid #0f3460;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: #4cc9f0;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e6e6e6;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            background-color: #1a1a2e;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3aa8d8;
+        }
+        
+        .btn-secondary {
+            background-color: #0f3460;
+            color: #e6e6e6;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #1a1a2e;
+        }
+        
+        /* 图片上传样式 */
+        .image-upload-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+        }
+        
+        .image-upload-section h3 {
+            margin-bottom: 15px;
+            color: #4cc9f0;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #0f3460;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .image-preview:hover {
+            border-color: #4cc9f0;
+            background-color: rgba(76, 201, 240, 0.05);
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .image-preview span {
+            color: #8a8a8a;
+            margin-top: 10px;
+        }
+        
+        .image-upload-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .image-upload-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #0f3460;
+            color: #e6e6e6;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .image-upload-btn:hover {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+        }
+        
+        /* 批量上传样式 */
+        .batch-upload-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+        }
+        
+        .batch-upload-section h3 {
+            margin-bottom: 15px;
+            color: #4cc9f0;
+        }
+        
+        .format-example {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #0f3460;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #b8b8b8;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 220px;
+            }
+            
+            .image-cell {
+                width: 100px;
+            }
+            
+            .image-cell img {
+                width: 70px;
+                height: 70px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 15px 20px;
+            }
+            
+            .sidebar-header {
+                margin-bottom: 20px;
+            }
+            
+            .sidebar-sections {
+                display: flex;
+                gap: 15px;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
+            .sidebar-section {
+                margin-bottom: 0;
+                min-width: 200px;
+            }
+            
+            .controls {
+                padding: 15px 20px;
+            }
+            
+            .table-container {
+                padding: 15px 20px;
+            }
+            
+            th, td {
+                padding: 12px 15px;
+            }
+            
+            .image-cell {
+                width: 80px;
+            }
+            
+            .image-cell img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .image-upload-controls {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .table-container {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 10px 12px;
+            }
+            
+            .sidebar-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .image-cell {
+                width: 70px;
+            }
+            
+            .image-cell img {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>游戏物品图鉴</h1>
+            <p>中英文对照管理系统</p>
+        </div>
+        
+        <div class="sidebar-sections">
+            <div class="sidebar-section">
+                <h3>数据管理</h3>
+                <button class="sidebar-btn" id="single-upload-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                    </svg>
+                    添加单个物品
+                </button>
+                <button class="sidebar-btn" id="batch-upload-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h13A1.5 1.5 0 0 1 16 1.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13zM1.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-13z"/>
+                        <path d="M2 2h2v2H2V2zm3 0h2v2H5V2zm3 0h2v2H8V2zm3 0h2v2h-2V2zm0 3h2v2h-2V5zm0 3h2v2h-2V8zm0 3h2v2h-2v-2zm-3 3h2v2H8v-2zm-3 0h2v2H5v-2zm-3 0h2v2H2v-2zm0-3h2v2H2v-2zm0-3h2v2H2V8zm0-3h2v2H2V5z"/>
+                    </svg>
+                    批量上传物品
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>批量操作</h3>
+                <button class="sidebar-btn" id="select-all-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                    </svg>
+                    全选项目
+                </button>
+                <button class="sidebar-btn" id="delete-selected-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                    删除选中
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>数据操作</h3>
+                <button class="sidebar-btn" id="export-data-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    </svg>
+                    导出数据
+                </button>
+                <button class="sidebar-btn" id="reset-data-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                    </svg>
+                    重置数据
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <p>© 2023 游戏物品图鉴系统</p>
+            <p>版本 1.2.0 - 图片上传功能</p>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="搜索英文或中文名称...">
+                <button id="search-btn">搜索</button>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-btn active" data-filter="all">全部</div>
+                <div class="filter-btn" data-filter="material">材料</div>
+                <div class="filter-btn" data-filter="fuel">燃料</div>
+                <div class="filter-btn" data-filter="mineral">矿物</div>
+                <div class="filter-btn" data-filter="component">组件</div>
+                <div class="filter-btn" data-filter="other">其他</div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="image-cell">图标</th>
+                        <th>英文名称</th>
+                        <th>中文名称</th>
+                        <th>分类</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="catalog-table">
+                    <!-- 表格内容将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 单个上传模态框 -->
+    <div class="modal" id="single-upload-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>添加单个物品</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="english-name">英文名称</label>
+                    <input type="text" id="english-name" placeholder="输入英文名称">
+                </div>
+                <div class="form-group">
+                    <label for="chinese-name">中文名称</label>
+                    <input type="text" id="chinese-name" placeholder="输入中文名称">
+                </div>
+                <div class="form-group">
+                    <label for="tags">分类</label>
+                    <select id="tags">
+                        <option value="material">材料</option>
+                        <option value="fuel">燃料</option>
+                        <option value="mineral">矿物</option>
+                        <option value="component">组件</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="image-upload-section">
+                    <h3>物品图片</h3>
+                    <div class="image-preview" id="image-preview">
+                        <span>点击选择图片或拖拽图片到这里</span>
+                    </div>
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                    <div class="image-upload-controls">
+                        <div class="image-upload-btn" id="image-select-btn">选择图片</div>
+                        <div class="image-upload-btn" id="image-clear-btn">清除图片</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="single-cancel-btn">取消</button>
+                <button class="btn btn-primary" id="single-submit-btn">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑物品模态框 -->
+    <div class="modal" id="edit-item-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>编辑物品</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-english-name">英文名称</label>
+                    <input type="text" id="edit-english-name" placeholder="输入英文名称">
+                </div>
+                <div class="form-group">
+                    <label for="edit-chinese-name">中文名称</label>
+                    <input type="text" id="edit-chinese-name" placeholder="输入中文名称">
+                </div>
+                <div class="form-group">
+                    <label for="edit-tags">分类</label>
+                    <select id="edit-tags">
+                        <option value="material">材料</option>
+                        <option value="fuel">燃料</option>
+                        <option value="mineral">矿物</option>
+                        <option value="component">组件</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="image-upload-section">
+                    <h3>物品图片</h3>
+                    <div class="image-preview" id="edit-image-preview">
+                        <span>点击选择图片或拖拽图片到这里</span>
+                    </div>
+                    <input type="file" id="edit-image-upload" accept="image/*" style="display: none;">
+                    <div class="image-upload-controls">
+                        <div class="image-upload-btn" id="edit-image-select-btn">选择图片</div>
+                        <div class="image-upload-btn" id="edit-image-clear-btn">清除图片</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="edit-cancel-btn">取消</button>
+                <button class="btn btn-primary" id="edit-submit-btn">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量上传模态框 -->
+    <div class="modal" id="batch-upload-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>批量上传物品</h2>
+            </div>
+            <div class="modal-body">
+                <div class="batch-upload-section">
+                    <h3>数据格式</h3>
+                    <p>请按照以下格式输入数据，每行一个物品：</p>
+                    <div class="format-example">
+                        英文名称,中文名称,分类<br>
+                        Carbon Weave,碳纤维编织物,material<br>
+                        D1 Fuel,D1燃料,fuel<br>
+                        Carbonaceous Ore,碳质矿石,mineral
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="batch-data">批量数据</label>
+                    <textarea id="batch-data" placeholder="在此粘贴批量数据..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="batch-cancel-btn">取消</button>
+                <button class="btn btn-primary" id="batch-submit-btn">批量导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 默认游戏物品数据
+        const defaultCatalogData = [
+            {id: 1, english: "Carbon Weave", chinese: "碳纤维编织物", tags: ["material"], favorite: false, image: ""},
+            {id: 2, english: "Reinforced Alloys", chinese: "增强合金", tags: ["material"], favorite: false, image: ""},
+            {id: 3, english: "Thermal Composite", chinese: "热复合材料", tags: ["material"], favorite: false, image: ""},
+            {id: 4, english: "Printed Circuits", chinese: "印刷电路", tags: ["material"], favorite: false, image: ""},
+            {id: 5, english: "Sojourn", chinese: "旅居", tags: ["other"], favorite: false, image: ""},
+            {id: 6, english: "Nomad Program Frame", chinese: "游牧程序框架", tags: ["component"], favorite: false, image: ""},
+            {id: 7, english: "Reflex", chinese: "反射", tags: ["other"], favorite: false, image: ""},
+            {id: 8, english: "Bulky Armor Plates II", chinese: "笨重装甲板 II", tags: ["component"], favorite: false, image: ""},
+            {id: 9, english: "Bulwark Shield Generator II", chinese: "堡垒护盾发生器 II", tags: ["component"], favorite: false, image: ""},
+            {id: 10, english: "Synthetic Mining", chinese: "合成采矿", tags: ["other"], favorite: false, image: ""},
+            {id: 11, english: "Small Cutting Laser", chinese: "小型切割激光", tags: ["component"], favorite: false, image: ""},
+            {id: 12, english: "Base Autocannon (S)", chinese: "基础自动加农炮(S)", tags: ["component"], favorite: false, image: ""},
+            {id: 13, english: "AC Autocannon (S)", chinese: "AC自动加农炮(S)", tags: ["component"], favorite: false, image: ""},
+            {id: 14, english: "Heat Exchanger XS", chinese: "XS热交换器", tags: ["component"], favorite: false, image: ""},
+            {id: 15, english: "Compressed Coolant", chinese: "压缩冷却剂", tags: ["material"], favorite: false, image: ""},
+            {id: 16, english: "D1 Fuel", chinese: "D1燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 17, english: "D2 Fuel", chinese: "D2燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 18, english: "SOF-80 FUEL", chinese: "SOF-80燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 19, english: "SOF-40 Fuel", chinese: "SOF-40燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 20, english: "EU-90 fuel", chinese: "EU-90燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 21, english: "EU-40 fuel", chinese: "EU-40燃料", tags: ["fuel"], favorite: false, image: ""},
+            {id: 22, english: "Carbonaceous Minerals", chinese: "碳质矿物", tags: ["mineral"], favorite: false, image: ""},
+            {id: 23, english: "Silicate Minerals", chinese: "硅酸盐矿物", tags: ["mineral"], favorite: false, image: ""},
+            {id: 24, english: "Metal-rich Minerals", chinese: "富金属矿物", tags: ["mineral"], favorite: false, image: ""},
+            {id: 25, english: "Water Ice", chinese: "水冰", tags: ["mineral"], favorite: false, image: ""},
+            {id: 26, english: "Carbonaceous Ore", chinese: "碳质矿石", tags: ["mineral"], favorite: false, image: ""},
+            {id: 27, english: "Common Ore", chinese: "普通矿石", tags: ["mineral"], favorite: false, image: ""},
+            {id: 28, english: "Metal-Rich Ore", chinese: "富金属矿石", tags: ["mineral"], favorite: false, image: ""},
+            {id: 29, english: "Salvaged Materials", chinese: "打捞材料", tags: ["material"], favorite: false, image: ""},
+            {id: 30, english: "Mummified Clone", chinese: "木乃伊克隆体", tags: ["other"], favorite: false, image: ""},
+            {id: 31, english: "Salt", chinese: "盐", tags: ["mineral"], favorite: false, image: ""},
+            {id: 32, english: "Heavy Metals", chinese: "重金属", tags: ["mineral"], favorite: false, image: ""},
+            {id: 33, english: "Feldspar", chinese: "长石", tags: ["mineral"], favorite: false, image: ""},
+            {id: 34, english: "Sulfides", chinese: "硫化物", tags: ["mineral"], favorite: false, image: ""},
+            {id: 35, english: "Precious Metals", chinese: "贵金属", tags: ["mineral"], favorite: false, image: ""},
+            {id: 36, english: "Silicate", chinese: "硅酸盐", tags: ["mineral"], favorite: false, image: ""},
+            {id: 37, english: "Carbonaceous Materials", chinese: "碳质材料", tags: ["material"], favorite: false, image: ""},
+            {id: 38, english: "Fossilized Exotronics", chinese: "化石异星电子设备", tags: ["other"], favorite: false, image: ""},
+            {id: 39, english: "Feral Echo", chinese: "野性回响", tags: ["other"], favorite: false, image: ""},
+            {id: 40, english: "Radiantium", chinese: "镭矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 41, english: "Luminalis", chinese: "流明矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 42, english: "Gravionite", chinese: "引力矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 43, english: "Eclipsite", chinese: "蚀矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 44, english: "Catalytic Dust", chinese: "催化粉尘", tags: ["material"], favorite: false, image: ""},
+            {id: 45, english: "Batched Carbon Weave", chinese: "批处理碳纤维编织物", tags: ["material"], favorite: false, image: ""},
+            {id: 46, english: "Batched Reinforced Alloys", chinese: "批处理增强合金", tags: ["material"], favorite: false, image: ""},
+            {id: 47, english: "Batched Thermal Composites", chinese: "批处理热复合材料", tags: ["material"], favorite: false, image: ""},
+            {id: 48, english: "Batched Printed Circuits", chinese: "批处理印刷电路", tags: ["material"], favorite: false, image: ""},
+            {id: 49, english: "Packaged Carbon Weave", chinese: "打包碳纤维编织物", tags: ["material"], favorite: false, image: ""},
+            {id: 50, english: "Packaged Reinforced Alloys", chinese: "打包增强合金", tags: ["material"], favorite: false, image: ""},
+            {id: 51, english: "Packaged Thermal Composites", chinese: "打包热复合材料", tags: ["material"], favorite: false, image: ""},
+            {id: 52, english: "Packaged Printed Circuits", chinese: "打包印刷电路", tags: ["material"], favorite: false, image: ""},
+            {id: 53, english: "ECHO CHAMBER", chinese: "回声室", tags: ["other"], favorite: false, image: ""},
+            {id: 54, english: "STILL KNOT", chinese: "静结", tags: ["other"], favorite: false, image: ""},
+            {id: 55, english: "APOCALYPSE PROTOCOL FRAME", chinese: "天启协议框架", tags: ["component"], favorite: false, image: ""},
+            {id: 56, english: "BASTION PROGRAM FRAME", chinese: "堡垒程序框架", tags: ["component"], favorite: false, image: ""},
+            {id: 57, english: "ARCHANGEL PROTOCOL FRAME", chinese: "大天使协议框架", tags: ["component"], favorite: false, image: ""},
+            {id: 58, english: "EXTERMINATA PROTOCOL FRAME", chinese: "灭绝协议框架", tags: ["component"], favorite: false, image: ""},
+            {id: 59, english: "EQUILIBRIUM PROGRAM FRAME", chinese: "平衡程序框架", tags: ["component"], favorite: false, image: ""},
+            {id: 60, english: "EM Nanite Sequencer", chinese: "电磁纳米序列器", tags: ["component"], favorite: false, image: ""},
+            {id: 61, english: "Thermal Nanite Sequencer", chinese: "热力纳米序列器", tags: ["component"], favorite: false, image: ""},
+            {id: 62, english: "Kinetic Nanite Sequencer", chinese: "动能纳米序列器", tags: ["component"], favorite: false, image: ""},
+            {id: 63, english: "Explosive Nanite Sequencer", chinese: "爆炸纳米序列器", tags: ["component"], favorite: false, image: ""},
+            {id: 64, english: "EM Disintegrator Charge", chinese: "电磁分解器弹药", tags: ["component"], favorite: false, image: ""},
+            {id: 65, english: "Building Foam", chinese: "建筑泡沫", tags: ["material"], favorite: false, image: ""},
+            {id: 66, english: "Cell Weave", chinese: "细胞编织物", tags: ["material"], favorite: false, image: ""},
+            {id: 67, english: "Shilajit", chinese: "沙棘脂", tags: ["material"], favorite: false, image: ""},
+            {id: 68, english: "SOPHROGON", chinese: "智慧矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 69, english: "EUPRAXITE", chinese: "优行矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 70, english: "Chitin", chinese: "几丁质", tags: ["material"], favorite: false, image: ""},
+            {id: 71, english: "ADAPTIVE CORE AESTASIUM", chinese: "自适应核心埃斯特矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 72, english: "AGILE CORE AESTASIUM", chinese: "敏捷核心埃斯特矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 73, english: "SOLIDIFYING CORE AESTASIUM", chinese: "固化核心埃斯特矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 74, english: "HARDENED CORE AESTASIUM", chinese: "硬化核心埃斯特矿", tags: ["mineral"], favorite: false, image: ""},
+            {id: 75, english: "Deep-Core Metallic Ore", chinese: "深核金属矿石", tags: ["mineral"], favorite: false, image: ""},
+            {id: 76, english: "OLD CRUDE MATTER", chinese: "旧原油物质", tags: ["material"], favorite: false, image: ""},
+            {id: 77, english: "YOUNG CRUDE MATTER", chinese: "新原油物质", tags: ["material"], favorite: false, image: ""},
+            {id: 78, english: "Stack Slice ?", chinese: "堆叠切片?", tags: ["other"], favorite: false, image: ""},
+            {id: 79, english: "Exclave Technocore", chinese: "外飞地技术核心", tags: ["component"], favorite: false, image: ""},
+            {id: 80, english: "Synod Technocore", chinese: "宗教会议技术核心", tags: ["component"], favorite: false, image: ""}
+        ];
+
+        // 数据持久化功能
+        const STORAGE_KEY = 'gameItemsCatalog';
+        
+        // 加载数据
+        function loadData() {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                return JSON.parse(storedData);
+            } else {
+                // 如果没有存储的数据，使用默认数据并保存
+                saveData(defaultCatalogData);
+                return defaultCatalogData;
+            }
+        }
+        
+        // 保存数据
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        
+        // 初始化数据
+        let catalogData = loadData();
+
+        // 获取DOM元素
+        const catalogTable = document.getElementById('catalog-table');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const singleUploadBtn = document.getElementById('single-upload-btn');
+        const singleUploadModal = document.getElementById('single-upload-modal');
+        const singleCancelBtn = document.getElementById('single-cancel-btn');
+        const singleSubmitBtn = document.getElementById('single-submit-btn');
+        const englishName = document.getElementById('english-name');
+        const chineseName = document.getElementById('chinese-name');
+        const tagsSelect = document.getElementById('tags');
+        const batchUploadBtn = document.getElementById('batch-upload-btn');
+        const batchUploadModal = document.getElementById('batch-upload-modal');
+        const batchCancelBtn = document.getElementById('batch-cancel-btn');
+        const batchSubmitBtn = document.getElementById('batch-submit-btn');
+        const batchData = document.getElementById('batch-data');
+        const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        const selectAllBtn = document.getElementById('select-all-btn');
+        const exportDataBtn = document.getElementById('export-data-btn');
+        const resetDataBtn = document.getElementById('reset-data-btn');
+        
+        // 图片上传相关元素
+        const imagePreview = document.getElementById('image-preview');
+        const imageUpload = document.getElementById('image-upload');
+        const imageSelectBtn = document.getElementById('image-select-btn');
+        const imageClearBtn = document.getElementById('image-clear-btn');
+        
+        // 编辑模态框相关元素
+        const editItemModal = document.getElementById('edit-item-modal');
+        const editEnglishName = document.getElementById('edit-english-name');
+        const editChineseName = document.getElementById('edit-chinese-name');
+        const editTagsSelect = document.getElementById('edit-tags');
+        const editImagePreview = document.getElementById('edit-image-preview');
+        const editImageUpload = document.getElementById('edit-image-upload');
+        const editImageSelectBtn = document.getElementById('edit-image-select-btn');
+        const editImageClearBtn = document.getElementById('edit-image-clear-btn');
+        const editCancelBtn = document.getElementById('edit-cancel-btn');
+        const editSubmitBtn = document.getElementById('edit-submit-btn');
+        
+        // 当前编辑的物品ID
+        let currentEditItemId = null;
+
+        // 应用状态
+        let selectedItems = new Set();
+        let currentFilter = 'all';
+        let currentSearchTerm = '';
+
+        // 初始化显示所有项目
+        displayCatalogItems(catalogData);
+
+        // 筛选功能
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有按钮的active类
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // 为当前点击的按钮添加active类
+                btn.classList.add('active');
+                
+                currentFilter = btn.getAttribute('data-filter');
+                applyFiltersAndSearch();
+            });
+        });
+
+        // 搜索功能
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        function performSearch() {
+            currentSearchTerm = searchInput.value.toLowerCase().trim();
+            applyFiltersAndSearch();
+        }
+
+        function applyFiltersAndSearch() {
+            let filteredItems = catalogData;
+            
+            // 应用筛选
+            if (currentFilter !== 'all') {
+                filteredItems = filteredItems.filter(item => 
+                    item.tags.includes(currentFilter)
+                );
+            }
+            
+            // 应用搜索
+            if (currentSearchTerm !== '') {
+                filteredItems = filteredItems.filter(item => 
+                    item.english.toLowerCase().includes(currentSearchTerm) ||
+                    item.chinese.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+            
+            displayCatalogItems(filteredItems);
+        }
+
+        // 单个上传功能
+        singleUploadBtn.addEventListener('click', () => {
+            singleUploadModal.style.display = 'flex';
+        });
+
+        singleCancelBtn.addEventListener('click', () => {
+            singleUploadModal.style.display = 'none';
+            resetSingleForm();
+        });
+
+        // 点击模态框外部关闭
+        singleUploadModal.addEventListener('click', (e) => {
+            if (e.target === singleUploadModal) {
+                singleUploadModal.style.display = 'none';
+                resetSingleForm();
+            }
+        });
+
+        // 图片上传功能 - 单个上传
+        imageSelectBtn.addEventListener('click', () => {
+            imageUpload.click();
+        });
+        
+        imageUpload.addEventListener('change', handleImageUpload);
+        
+        imageClearBtn.addEventListener('click', () => {
+            imagePreview.innerHTML = '<span>点击选择图片或拖拽图片到这里</span>';
+            imageUpload.value = '';
+        });
+        
+        // 拖放功能 - 单个上传
+        imagePreview.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imagePreview.style.borderColor = '#4cc9f0';
+            imagePreview.style.backgroundColor = 'rgba(76, 201, 240, 0.1)';
+        });
+        
+        imagePreview.addEventListener('dragleave', () => {
+            imagePreview.style.borderColor = '#0f3460';
+            imagePreview.style.backgroundColor = '';
+        });
+        
+        imagePreview.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imagePreview.style.borderColor = '#0f3460';
+            imagePreview.style.backgroundColor = '';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                imageUpload.files = e.dataTransfer.files;
+                handleImageUpload();
+            }
+        });
+
+        // 提交单个物品
+        singleSubmitBtn.addEventListener('click', () => {
+            const english = englishName.value.trim();
+            const chinese = chineseName.value.trim();
+            const tags = [tagsSelect.value];
+            
+            if (!english || !chinese) {
+                alert('请填写英文和中文名称');
+                return;
+            }
+            
+            // 获取图片数据
+            const imageFile = imageUpload.files[0];
+            let imageData = '';
+            
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imageData = e.target.result;
+                    
+                    // 创建新项目
+                    const newItem = {
+                        id: catalogData.length > 0 ? Math.max(...catalogData.map(item => item.id)) + 1 : 1,
+                        english: english,
+                        chinese: chinese,
+                        tags: tags,
+                        favorite: false,
+                        image: imageData
+                    };
+                    
+                    catalogData.push(newItem);
+                    saveData(catalogData);
+                    applyFiltersAndSearch();
+                    singleUploadModal.style.display = 'none';
+                    resetSingleForm();
+                    
+                    // 显示成功消息
+                    alert('物品添加成功！');
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                // 没有图片的情况
+                const newItem = {
+                    id: catalogData.length > 0 ? Math.max(...catalogData.map(item => item.id)) + 1 : 1,
+                    english: english,
+                    chinese: chinese,
+                    tags: tags,
+                    favorite: false,
+                    image: ''
+                };
+                
+                catalogData.push(newItem);
+                saveData(catalogData);
+                applyFiltersAndSearch();
+                singleUploadModal.style.display = 'none';
+                resetSingleForm();
+                
+                // 显示成功消息
+                alert('物品添加成功！');
+            }
+        });
+
+        // 重置单个表单
+        function resetSingleForm() {
+            englishName.value = '';
+            chineseName.value = '';
+            tagsSelect.value = 'material';
+            imagePreview.innerHTML = '<span>点击选择图片或拖拽图片到这里</span>';
+            imageUpload.value = '';
+        }
+
+        // 批量上传功能
+        batchUploadBtn.addEventListener('click', () => {
+            batchUploadModal.style.display = 'flex';
+        });
+
+        batchCancelBtn.addEventListener('click', () => {
+            batchUploadModal.style.display = 'none';
+            resetBatchForm();
+        });
+
+        // 点击模态框外部关闭
+        batchUploadModal.addEventListener('click', (e) => {
+            if (e.target === batchUploadModal) {
+                batchUploadModal.style.display = 'none';
+                resetBatchForm();
+            }
+        });
+
+        // 提交批量数据
+        batchSubmitBtn.addEventListener('click', () => {
+            const dataText = batchData.value.trim();
+            
+            if (!dataText) {
+                alert('请输入批量数据');
+                return;
+            }
+            
+            const lines = dataText.split('\n');
+            let addedCount = 0;
+            let errorCount = 0;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line) {
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const english = parts[0].trim();
+                        const chinese = parts[1].trim();
+                        const tags = parts.length >= 3 ? [parts[2].trim()] : ['other'];
+                        
+                        if (english && chinese) {
+                            // 检查是否已存在
+                            const exists = catalogData.some(item => 
+                                item.english.toLowerCase() === english.toLowerCase() || 
+                                item.chinese === chinese
+                            );
+                            
+                            if (!exists) {
+                                const newItem = {
+                                    id: catalogData.length > 0 ? Math.max(...catalogData.map(item => item.id)) + 1 : 1,
+                                    english: english,
+                                    chinese: chinese,
+                                    tags: tags,
+                                    favorite: false,
+                                    image: ""
+                                };
+                                
+                                catalogData.push(newItem);
+                                addedCount++;
+                            } else {
+                                errorCount++;
+                            }
+                        } else {
+                            errorCount++;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                }
+            });
+            
+            saveData(catalogData);
+            applyFiltersAndSearch();
+            batchUploadModal.style.display = 'none';
+            resetBatchForm();
+            
+            // 显示结果消息
+            let message = `成功添加 ${addedCount} 个物品`;
+            if (errorCount > 0) {
+                message += `，${errorCount} 行数据格式错误或已存在`;
+            }
+            alert(message);
+        });
+
+        // 重置批量表单
+        function resetBatchForm() {
+            batchData.value = '';
+        }
+
+        // 显示图鉴项目
+        function displayCatalogItems(items) {
+            catalogTable.innerHTML = '';
+            
+            if (items.length === 0) {
+                catalogTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #8a8a8a;">
+                            未找到匹配的物品
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            items.forEach(item => {
+                const tagText = getTagDisplayText(item.tags[0]);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="image-cell">
+                        <img src="${item.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iOCIgZmlsbD0iIzBGMzQ2MCIvPgo8cGF0aCBkPSJNNDAgMjZDMzIuMjY4IDI2IDI2IDMyLjI2OCAyNiA0MEMyNiA0Ny43MzIgMzIuMjY4IDU0IDQwIDU0QzQ3LjczMiA1NCA1NCA0Ny43MzIgNTQgNDBDNTQgMzIuMjY4IDQ3LjczMiAyNiA0MCAyNlpNNDAgNThDNDQuNDE4IDU4IDQ4IDU0LjQxOCA0OCA1MEM0OCA0NS41ODIgNDQuNDE4IDQyIDQwIDQyQzM1LjU4MiA0MiAzMiA0NS41ODIgMzIgNTBDMzIgNTQuNDE4IDM1LjU4MiA1OCA0MCA1OFoiIGZpbGw9IiM0Y2M5ZjAiLz4KPHBhdGggZD0iTTUyIDI4QzU0LjIwOTEgMjggNTYgMjYuMjA5MSA1NiAyNEM1NiAyMS43OTA5IDU0LjIwOTEgMjAgNTIgMjBDNDkuNzkwOSAyMCA0OCAyMS43OTA5IDQ4IDI0QzQ4IDI2LjIwOTEgNDkuNzkwOSAyOCA1MiAyOFoiIGZpbGw9IiM0Y2M5ZjAiLz4KPC9zdmc+'}" alt="${item.english}">
+                    </td>
+                    <td class="english-cell">${item.english}</td>
+                    <td class="chinese-cell">${item.chinese}</td>
+                    <td>
+                        <div class="tags-cell">
+                            <span class="tag">${tagText}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="edit-btn" data-id="${item.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                </svg>
+                            </button>
+                            <button class="favorite-btn ${item.favorite ? 'active' : ''}" data-id="${item.id}">
+                                ${item.favorite ? '❤️' : '🤍'}
+                            </button>
+                            <button class="delete-btn" data-id="${item.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                catalogTable.appendChild(row);
+            });
+            
+            // 添加编辑按钮事件监听
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    openEditModal(id);
+                });
+            });
+            
+            // 添加收藏按钮事件监听
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const item = catalogData.find(item => item.id === id);
+                    
+                    if (item) {
+                        item.favorite = !item.favorite;
+                        this.classList.toggle('active');
+                        this.innerHTML = item.favorite ? '❤️' : '🤍';
+                        saveData(catalogData);
+                    }
+                });
+            });
+            
+            // 添加删除按钮事件监听
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    if (confirm('确定要删除这个物品吗？')) {
+                        catalogData = catalogData.filter(item => item.id !== id);
+                        selectedItems.delete(id);
+                        saveData(catalogData);
+                        applyFiltersAndSearch();
+                    }
+                });
+            });
+        }
+
+        // 打开编辑模态框
+        function openEditModal(id) {
+            const item = catalogData.find(item => item.id === id);
+            if (!item) return;
+            
+            currentEditItemId = id;
+            editEnglishName.value = item.english;
+            editChineseName.value = item.chinese;
+            editTagsSelect.value = item.tags[0];
+            
+            // 设置图片预览
+            if (item.image) {
+                editImagePreview.innerHTML = `<img src="${item.image}" alt="${item.english}">`;
+            } else {
+                editImagePreview.innerHTML = '<span>点击选择图片或拖拽图片到这里</span>';
+            }
+            
+            editItemModal.style.display = 'flex';
+        }
+
+        // 编辑模态框功能
+        editCancelBtn.addEventListener('click', () => {
+            editItemModal.style.display = 'none';
+            resetEditForm();
+        });
+
+        // 点击模态框外部关闭
+        editItemModal.addEventListener('click', (e) => {
+            if (e.target === editItemModal) {
+                editItemModal.style.display = 'none';
+                resetEditForm();
+            }
+        });
+
+        // 图片上传功能 - 编辑
+        editImageSelectBtn.addEventListener('click', () => {
+            editImageUpload.click();
+        });
+        
+        editImageUpload.addEventListener('change', handleEditImageUpload);
+        
+        editImageClearBtn.addEventListener('click', () => {
+            editImagePreview.innerHTML = '<span>点击选择图片或拖拽图片到这里</span>';
+            editImageUpload.value = '';
+        });
+        
+        // 拖放功能 - 编辑
+        editImagePreview.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            editImagePreview.style.borderColor = '#4cc9f0';
+            editImagePreview.style.backgroundColor = 'rgba(76, 201, 240, 0.1)';
+        });
+        
+        editImagePreview.addEventListener('dragleave', () => {
+            editImagePreview.style.borderColor = '#0f3460';
+            editImagePreview.style.backgroundColor = '';
+        });
+        
+        editImagePreview.addEventListener('drop', (e) => {
+            e.preventDefault();
+            editImagePreview.style.borderColor = '#0f3460';
+            editImagePreview.style.backgroundColor = '';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                editImageUpload.files = e.dataTransfer.files;
+                handleEditImageUpload();
+            }
+        });
+
+        // 提交编辑
+        editSubmitBtn.addEventListener('click', () => {
+            const english = editEnglishName.value.trim();
+            const chinese = editChineseName.value.trim();
+            const tags = [editTagsSelect.value];
+            
+            if (!english || !chinese) {
+                alert('请填写英文和中文名称');
+                return;
+            }
+            
+            const item = catalogData.find(item => item.id === currentEditItemId);
+            if (!item) return;
+            
+            // 更新基本信息
+            item.english = english;
+            item.chinese = chinese;
+            item.tags = tags;
+            
+            // 获取图片数据
+            const imageFile = editImageUpload.files[0];
+            
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    item.image = e.target.result;
+                    saveData(catalogData);
+                    applyFiltersAndSearch();
+                    editItemModal.style.display = 'none';
+                    resetEditForm();
+                    
+                    // 显示成功消息
+                    alert('物品修改成功！');
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                // 如果没有选择新图片，保持原有图片
+                saveData(catalogData);
+                applyFiltersAndSearch();
+                editItemModal.style.display = 'none';
+                resetEditForm();
+                
+                // 显示成功消息
+                alert('物品修改成功！');
+            }
+        });
+
+        // 重置编辑表单
+        function resetEditForm() {
+            currentEditItemId = null;
+            editEnglishName.value = '';
+            editChineseName.value = '';
+            editTagsSelect.value = 'material';
+            editImagePreview.innerHTML = '<span>点击选择图片或拖拽图片到这里</span>';
+            editImageUpload.value = '';
+        }
+
+        // 处理图片上传
+        function handleImageUpload() {
+            const file = imageUpload.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="预览图片">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 处理编辑图片上传
+        function handleEditImageUpload() {
+            const file = editImageUpload.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editImagePreview.innerHTML = `<img src="${e.target.result}" alt="预览图片">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 获取标签显示文本
+        function getTagDisplayText(tag) {
+            const tagMap = {
+                'material': '材料',
+                'fuel': '燃料',
+                'mineral': '矿物',
+                'component': '组件',
+                'other': '其他'
+            };
+            return tagMap[tag] || tag;
+        }
+
+        // 全选功能
+        selectAllBtn.addEventListener('click', () => {
+            const currentItems = getCurrentDisplayedItems();
+            if (selectedItems.size === currentItems.length) {
+                // 如果已经全选，则取消全选
+                selectedItems.clear();
+            } else {
+                // 否则全选当前显示的项目
+                currentItems.forEach(item => selectedItems.add(item.id));
+            }
+            applyFiltersAndSearch();
+        });
+
+        // 获取当前显示的项目
+        function getCurrentDisplayedItems() {
+            let items = catalogData;
+            
+            if (currentFilter !== 'all') {
+                items = items.filter(item => item.tags.includes(currentFilter));
+            }
+            
+            if (currentSearchTerm !== '') {
+                items = items.filter(item => 
+                    item.english.toLowerCase().includes(currentSearchTerm) ||
+                    item.chinese.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+            
+            return items;
+        }
+
+        // 批量删除功能
+        deleteSelectedBtn.addEventListener('click', () => {
+            if (selectedItems.size === 0) {
+                alert('请先选择要删除的物品');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedItems.size} 个物品吗？`)) {
+                catalogData = catalogData.filter(item => !selectedItems.has(item.id));
+                selectedItems.clear();
+                saveData(catalogData);
+                applyFiltersAndSearch();
+                alert(`成功删除 ${selectedItems.size} 个物品`);
+            }
+        });
+
+        // 导出数据功能
+        exportDataBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(catalogData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'game-items-catalog.json';
+            link.click();
+            
+            alert('数据已导出为 game-items-catalog.json 文件');
+        });
+
+        // 重置数据功能
+        resetDataBtn.addEventListener('click', () => {
+            if (confirm('确定要重置所有数据吗？这将恢复为初始状态，所有自定义添加的数据将丢失。')) {
+                catalogData = [...defaultCatalogData];
+                saveData(catalogData);
+                applyFiltersAndSearch();
+                alert('数据已重置为初始状态');
+            }
+        });
+    </script>
+</body>
+</html>
